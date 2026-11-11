@@ -3,42 +3,29 @@ CXX := g++
 INCLUDEDIR = .
 CFLAGS := -I$(INCLUDEDIR) -D_FILE_OFFSET_BITS=64 -D_LARGEFILE_SOURCE -O2
 
+IMAGE_TOOLS = asustrx addpattern untrx motorola-bin splitter3
+
+# Every directory that is built, in build order
+COMPONENTS = bff jffs2 uncramfs uncramfs-lzma cramfs-2.x cramfsswap \
+	squashfs-2.1-r2 squashfs-3.0 squashfs-3.0-lzma-damn-small-variant \
+	wrt_vx_imgtool $(patsubst %/Makefile,%,$(sort $(wildcard others/*/Makefile))) \
+	crcalc webcomp-tools tpl-tool/src firmware-tools yaffs2utils mountcp
+
 # The bundled tools are old third-party code, and current compilers print
-# several thousand lines of warnings about them. The output is therefore
-# written to build.log and only shown if the build fails. Run "make V=1" to
-# watch it instead.
+# several thousand lines of warnings about them. By default only a line of
+# progress is shown for each component and the compiler output is written to
+# build.log. Run "make V=1" to see it instead.
 all:
 ifeq ($(V),1)
 	$(MAKE) tools
 else
-	@echo "Building any tools that are missing or out of date (\"make V=1\" shows the compiler output)."
-	@echo "A build from scratch takes a minute or two..."
-	@if $(MAKE) tools > build.log 2>&1; then \
-		echo "The tools are ready."; \
-	else \
-		grep -E -B2 -A6 '(^|[^a-z])error[: ]|undefined reference|multiple definition|No such file' build.log | head -n 60; \
-		echo; \
-		echo "Build failed! The complete output is in $(CURDIR)/build.log"; \
-		exit 1; \
-	fi
+	+@MAKE="$(MAKE)" ./quiet-build.sh build.log @image-tools $(COMPONENTS)
 endif
 
-tools: asustrx addpattern untrx motorola-bin splitter3 bffutils unjffs2
-	$(MAKE) -C ./uncramfs/
-	$(MAKE) -C ./uncramfs-lzma/
-	$(MAKE) -C ./cramfs-2.x/
-	$(MAKE) -C ./cramfsswap/
-	$(MAKE) -C ./squashfs-2.1-r2/
-	$(MAKE) -C ./squashfs-3.0/
-	$(MAKE) -C ./squashfs-3.0-lzma-damn-small-variant/
-	$(MAKE) -C ./wrt_vx_imgtool/
-	$(MAKE) -C ./others/
-	$(MAKE) -C ./crcalc/
-	$(MAKE) -C ./webcomp-tools/
-	$(MAKE) -C ./tpl-tool/src/
-	$(MAKE) -C ./firmware-tools/
-	$(MAKE) -C ./yaffs2utils/
-	$(MAKE) -C ./mountcp
+image-tools: $(IMAGE_TOOLS)
+
+tools: image-tools
+	for dir in $(COMPONENTS); do $(MAKE) -C $$dir || exit 1; done
 
 addpattern: addpattern.o
 	$(CC) addpattern.o -o $@
@@ -55,14 +42,10 @@ asustrx: asustrx.o
 motorola-bin: motorola-bin.o
 	$(CC) motorola-bin.o -o $@
 
-bffutils:
-	$(MAKE) -C ./bff/
-
-unjffs2:
-	$(MAKE) -C ./jffs2
+.PHONY: all tools image-tools clean cleanall distclean
 
 clean:
-	rm -f *.o build.log
+	rm -f *.o build.log build.log.tmp
 	rm -f motorola-bin
 	rm -f untrx
 	rm -f asustrx

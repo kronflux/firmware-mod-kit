@@ -76,9 +76,11 @@ make
 This runs `src/configure` and builds every tool under `src/`. Parallel builds
 (`make -j8`) are supported. `make clean` removes what was built.
 
-The bundled tools are old code that current compilers warn about at length, so
-the compiler output goes to `src/build.log` and is only shown if the build
-fails. Use `make V=1` to see it as it happens.
+The build prints one line of progress per component. The bundled tools are old
+code that current compilers warn about at length, so the compiler output goes
+to `src/build.log`, and the relevant part is shown if a component fails to
+build. Use `make V=1` to see everything as it happens. Colours are used when
+the output is a terminal and can be turned off by setting `NO_COLOR`.
 
 The extract and build scripts also build the tools on first use if they have
 not been built yet.

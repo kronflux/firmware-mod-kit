@@ -16,7 +16,7 @@ fi
 # Web files were likely extracted as root, so we'll need root permissions to modify them
 if [ $UID -ne 0 ]
 then
-	SUDO="sudo"
+	SUDO="${FMK_SUDO-sudo}"
 fi
 
 eval $(cat shared-ng.inc)

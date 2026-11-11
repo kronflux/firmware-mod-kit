@@ -17,9 +17,9 @@ else
 	NEXT_PARAM="$2"
 fi
 
-# Need to extract file systems as ROOT
+# Need to build file systems as ROOT; see extract-firmware.sh for FMK_SUDO
 if [ "$UID" != "0" ]; then
-        SUDO="sudo"
+        SUDO="${FMK_SUDO-sudo}"
 else
         SUDO=""
 fi

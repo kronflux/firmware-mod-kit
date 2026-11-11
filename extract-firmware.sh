@@ -9,9 +9,11 @@ if [ "${DIR}" = "" ]; then
 	DIR="fmk"
 fi
 
-# Need to extract file systems as ROOT
+# Need to extract file systems as ROOT, so that device nodes and file ownership
+# survive. Set FMK_SUDO to use something other than sudo to gain privileges
+# (e.g. "fakeroot"), or to the empty string to run without any.
 if [ "$(id -ru)" != "0" ]; then
-	SUDO="sudo"
+	SUDO="${FMK_SUDO-sudo}"
 else
 	SUDO=""
 fi

@@ -14,7 +14,7 @@ if [ "$1" == "-h" ] || [ ! -d "$SRC/image_parts" ] || [ ! -d "$DEST/image_parts"
 fi
 
 if [ "$UID" != "0" ]; then
-        SUDO="sudo"
+        SUDO="${FMK_SUDO-sudo}"
 else
         SUDO=""
 fi

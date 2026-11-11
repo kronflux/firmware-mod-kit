@@ -31,7 +31,7 @@ printf "Firmware Mod Kit (extract) ${VERSION}, (c)2011-2013 Craig Heffner, Jerem
 
 # Check usage
 if [ "${IMG}" = "" ] || [ "${IMG}" = "-h" ]; then
-	printf "Usage: ${0} <firmware image>\n\n"
+	printf "Usage: ${0} <firmware image> [output directory]\n\n"
 	exit 1
 fi
 

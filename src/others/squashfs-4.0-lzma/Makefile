@@ -54,6 +54,7 @@ unsquash-4.o: unsquashfs.h unsquash-4.c squashfs_fs.h squashfs_swap.h global.h u
 
 clean:
 	-rm -f *.o mksquashfs-lzma unsquashfs-lzma
+	$(MAKE) -C $(LZMAPATH) clean
 
 install: mksquashfs unsquashfs
 	mkdir -p $(INSTALL_DIR)

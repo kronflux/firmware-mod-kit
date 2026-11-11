@@ -74,7 +74,7 @@ unsquash-4.o: unsquashfs.h unsquash-4.c squashfs_fs.h squashfs_swap.h \
 
 .PHONY: clean
 clean:
-	-rm -f *.o mksquashfs unsquashfs
+	-rm -f *.o $(LZMA_OBJS) mksquashfs unsquashfs
 
 .PHONY: install
 install: mksquashfs unsquashfs

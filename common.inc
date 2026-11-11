@@ -6,11 +6,11 @@ Build_Tools ()
 		echo "Preparing tools ..."
 		cd src 
 		if [ ! -f "./Makefile" ]; then	
-			./configure 2>&1 >> /dev/null
+			./configure --quiet
 		fi
 		make -s
 		if [ $? -eq 0 ]; then
-			cd - 2>&1 >> /dev/null
+			cd - > /dev/null 2>&1
 		else
 			echo "Tools build failed! Check pre-requisites. Quitting..."
 			exit 1

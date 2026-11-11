@@ -3,7 +3,26 @@ CXX := g++
 INCLUDEDIR = .
 CFLAGS := -I$(INCLUDEDIR) -D_FILE_OFFSET_BITS=64 -D_LARGEFILE_SOURCE -O2
 
-all: asustrx addpattern untrx motorola-bin splitter3 bffutils unjffs2
+# The bundled tools are old third-party code, and current compilers print
+# several thousand lines of warnings about them. The output is therefore
+# written to build.log and only shown if the build fails. Run "make V=1" to
+# watch it instead.
+all:
+ifeq ($(V),1)
+	$(MAKE) tools
+else
+	@echo "Building the tools, this takes a minute or two (\"make V=1\" shows the compiler output)..."
+	@if $(MAKE) tools > build.log 2>&1; then \
+		echo "Tools built successfully."; \
+	else \
+		grep -E -B2 -A6 '(^|[^a-z])error[: ]|undefined reference|multiple definition|No such file' build.log | head -n 60; \
+		echo; \
+		echo "Build failed! The complete output is in $(CURDIR)/build.log"; \
+		exit 1; \
+	fi
+endif
+
+tools: asustrx addpattern untrx motorola-bin splitter3 bffutils unjffs2
 	$(MAKE) -C ./uncramfs/
 	$(MAKE) -C ./uncramfs-lzma/
 	$(MAKE) -C ./cramfs-2.x/
@@ -42,7 +61,7 @@ unjffs2:
 	$(MAKE) -C ./jffs2
 
 clean:
-	rm -f *.o
+	rm -f *.o build.log
 	rm -f motorola-bin
 	rm -f untrx
 	rm -f asustrx

@@ -34,31 +34,9 @@ others/squashfs-4.2 \
 others/squashfs-4.0-lzma \
 others/squashfs-4.0-realtek \
 others/squashfs-hg55x-bin"
+# Seconds each unsquashfs utility gets before it is considered hung
 TIMEOUT="60"
 MKFS=""
-
-function wait_for_complete()
-{
-	I=0
-	PNAME="$1"
-
-	while [ $I -lt $TIMEOUT ]
-	do
-		sleep 1
-
-		if [ "$(pgrep $PNAME)" == "" ]
-		then
-			break
-		fi
-
-		((I=$I+1))
-	done
-
-	if [ "$I" == "$TIMEOUT" ]
-	then
-		kill -9 $(pgrep $PNAME) 2>/dev/null
-	fi
-}
 
 if [ "$IMG" == "" ] || [ "$IMG" == "-h" ]
 then
@@ -113,9 +91,7 @@ do
 	if [ -e $unsquashfs-lzma ]; then
 		echo -ne "\nTrying $unsquashfs-lzma... "
 
-		$unsquashfs-lzma -dest "$DIR" "$IMG" 2>/dev/null &
-		#sleep $TIMEOUT && kill $! 1>&2 >/dev/null
-		wait_for_complete $unsquashfs-lzma
+		timeout -k 5 $TIMEOUT $unsquashfs-lzma -dest "$DIR" "$IMG" 2>/dev/null
 		
 		if [ -d "$DIR" ]
                 then
@@ -142,9 +118,7 @@ do
 	if [ "$MKFS" == "" ] && [ -e $unsquashfs ]; then
 		echo -ne "\nTrying $unsquashfs... "
 
-		$unsquashfs -dest "$DIR" "$IMG" 2>/dev/null &
-		#sleep $TIMEOUT && kill $! 1>&2 >/dev/null
-		wait_for_complete $unsquashfs
+		timeout -k 5 $TIMEOUT $unsquashfs -dest "$DIR" "$IMG" 2>/dev/null
 
 		if [ -d "$DIR" ]
 		then

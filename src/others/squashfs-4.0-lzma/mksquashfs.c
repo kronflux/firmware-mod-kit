@@ -3474,7 +3474,7 @@ struct dir_info *dir_scan2(struct dir_info *dir, struct pseudo *pseudo)
 	struct dir_ent *dir_ent;
 	struct pseudo_entry *pseudo_ent;
 	struct stat buf;
-	static pseudo_ino = 1;
+	static int pseudo_ino = 1;
 	
 	if(dir == NULL && (dir = scan1_opendir("")) == NULL)
 		return NULL;

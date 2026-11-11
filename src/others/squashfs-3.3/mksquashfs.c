@@ -1920,7 +1920,7 @@ struct file_buffer *get_file_buffer(struct queue *queue)
 }
 
 
-int progress_bar(long long current, long long max, int columns)
+void progress_bar(long long current, long long max, int columns)
 {
 	int max_digits = ceil(log10(max));
 	int used = max_digits * 2 + 10;

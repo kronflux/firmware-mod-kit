@@ -52,6 +52,7 @@
 #define __LITTLE_ENDIAN LITTLE_ENDIAN
 #else
 #include <endian.h>
+#include <sys/sysinfo.h>
 #endif
 
 #include "squashfs_fs.h"

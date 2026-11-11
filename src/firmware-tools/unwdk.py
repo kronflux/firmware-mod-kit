@@ -36,6 +36,26 @@ def get_entry(data):
 
 	return (file_size, file_name.decode('latin-1'))
 
+# Decompress a 7z archive holding a single file, as "p7zip -d" used to.
+# Returns False if no 7-Zip binary is installed or the data is not a 7z archive.
+def decompress_7z(archive, out_file_name):
+	for name in ("7z", "7zz", "7za", "7zr"):
+		sevenzip = shutil.which(name)
+		if sevenzip:
+			break
+	else:
+		return False
+
+	with open(out_file_name, 'wb') as out:
+		status = subprocess.call([sevenzip, "x", "-so", archive], stdout=out, stderr=subprocess.DEVNULL)
+
+	if status != 0:
+		os.remove(out_file_name)
+		return False
+
+	os.remove(archive)
+	return True
+
 def extract(fs_image_file):	
 	fs_img = open(fs_image_file, 'rb').read()
 	if len(fs_img) < 32:
@@ -81,10 +101,9 @@ def extract(fs_image_file):
 	
 		open(out_file_name, 'wb').write(file_data)
 		
-		# Try to decompress the file
-		subprocess.call(["p7zip", "-d", out_file_name])
-		if os.path.exists(out_file_name):
-			shutil.move(out_file_name, out_file_name[:-3])
+		# Try to decompress the file; keep the raw data if that fails
+		if not decompress_7z(out_file_name, file_name):
+			shutil.move(out_file_name, file_name)
 	
 		print(file_name)
 
@@ -96,6 +115,8 @@ def main():
 	except:
 		print("Usage: %s <WDK image file> [big | little]" % sys.argv[0])
 		sys.exit(1)
+	global ENDIANESS
+
 	try:
 		ENDIANESS = sys.argv[2]
 	except:

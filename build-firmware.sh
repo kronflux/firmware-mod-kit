@@ -91,7 +91,7 @@ case $FS_TYPE in
 	"yaffs")
 		$SUDO $MKFS "$ROOTFS" "$FSOUT"
 		echo "WARNING: YAFFS2 completely untested !! Hit any key to confirm ..."
-		pause
+		read -n 1 -s -r
 		;;
 	"jffs2")
 		# mkfs.jffs2 comes from mtd-utils

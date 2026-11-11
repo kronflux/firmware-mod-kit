@@ -324,6 +324,7 @@ extern int read_sort_file(char *filename, int source, char *source_path[]);
 extern void sort_files_and_write(struct dir_info *dir);
 struct file_info *duplicate(long long file_size, long long bytes, unsigned int **block_list, long long *start, struct fragment **fragment, struct file_buffer *file_buffer, struct buffer_list *buffer_list, int blocks, unsigned short checksum, unsigned short fragment_checksum, int checksum_flag);
 struct dir_info *dir_scan1(char *, int (_readdir)(char *, char *, struct dir_info *));
+int dir_scan2(squashfs_inode *inode, struct dir_info *dir_info);
 struct file_info *add_non_dup(long long file_size, long long bytes, unsigned int *block_list, long long start, struct fragment *fragment, unsigned short checksum, unsigned short fragment_checksum, int checksum_flag);
 extern void generate_file_priorities(struct dir_info *dir, int priority, struct stat *buf);
 extern struct priority_entry *priority_list[65536];

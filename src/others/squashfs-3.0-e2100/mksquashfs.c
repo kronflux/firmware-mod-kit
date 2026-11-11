@@ -255,6 +255,7 @@ int read_sort_file(char *filename, int source, char *source_path[]);
 void sort_files_and_write(struct dir_info *dir);
 struct file_info *duplicate(char *(get_next_file_block)(struct duplicate_buffer_handle *, unsigned int), struct duplicate_buffer_handle *file_start, long long bytes, unsigned int **block_list, long long *start, int blocks, struct fragment **fragment, char *frag_data, int frag_bytes);
 struct dir_info *dir_scan1(char *, int (_readdir)(char *, char *, struct dir_info *));
+int dir_scan2(squashfs_inode *inode, struct dir_info *dir_info);
 
 #define MKINODE(A)	((squashfs_inode)(((squashfs_inode) inode_bytes << 16) + (((char *)A) - data_cache)))
 

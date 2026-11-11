@@ -20,6 +20,7 @@
  * mksquashfs.c
  */
 
+#define _GNU_SOURCE
 #define TRUE 1
 #include <pwd.h>
 #include <grp.h>
@@ -33,6 +34,7 @@
 #include <errno.h>
 #include <dirent.h>
 #include <string.h>
+#include <ctype.h>
 #include <zlib.h>
 #ifdef __MACOSX__
   #define __BYTE_ORDER BYTE_ORDER
@@ -241,6 +243,7 @@ squashfs_inode get_sorted_inode(struct stat *buf);
 int read_sort_file(char *filename, int source, char *source_path[]);
 void sort_files_and_write(int source, char *source_path[]);
 struct file_info *duplicate(unsigned char *(get_next_file_block)(struct duplicate_buffer_handle *, unsigned int), struct duplicate_buffer_handle *file_start, int bytes, unsigned int **block_list, int *start, int blocks, struct fragment **fragment, char *frag_data, int frag_bytes);
+int devtable_readdir(void *l, char *filename, char *dir_name, struct stat *devtable_inode_info);
 
 #define FALSE 0
 

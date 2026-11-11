@@ -1,8 +1,8 @@
 all:
 	$(MAKE) -C nb4-mksquashfs
 	$(MAKE) -C nb4-unsquashfs
-	cp nb4-mksquashfs/mksquashfs .
-	cp nb4-unsquashfs/unsquashfs .
+	@cp -u nb4-mksquashfs/mksquashfs .
+	@cp -u nb4-unsquashfs/unsquashfs .
 
 clean:
 	$(MAKE) -C nb4-mksquashfs clean

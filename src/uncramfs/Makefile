@@ -35,9 +35,8 @@ $(DISTFILE): $(DISTFILES)
 	rm -rf $(VERSIONED_NAME)
 
 clean:
-	-rm $(TARGET)
-	-rm $(DISTFILE)
-	-rcsclean
+	rm -f $(TARGET)
+	rm -f $(DISTFILE)
 
 #cuncramfs: uncramfs.c
 #	$(CC) $(CFLAGS) $< -o $@ $(LDLIBS)

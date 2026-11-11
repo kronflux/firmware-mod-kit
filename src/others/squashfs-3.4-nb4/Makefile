@@ -43,8 +43,8 @@ all:
 	${MAKE} -C ${LzmaC} -f sqlzma.mk $@
 	${MAKE} -C ${LzmaAlone} -f sqlzma.mk $@
 	${MAKE} -C ${SqTools} $@
-	cp ${SqTools}/mksquashfs ./mksquashfs-lzma
-	cp ${SqTools}/unsquashfs ./unsquashfs
+	@cp -u ${SqTools}/mksquashfs ./mksquashfs-lzma
+	@cp -u ${SqTools}/unsquashfs ./unsquashfs
 clean:
 	${MAKE} -C ${LzmaC} -f sqlzma.mk $@
 	${MAKE} -C ${LzmaAlone} -f sqlzma.mk $@

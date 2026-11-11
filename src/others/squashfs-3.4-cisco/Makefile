@@ -2,8 +2,8 @@ SQDIR=squashfs-tools
 
 all:
 	$(MAKE) -C $(SQDIR)
-	cp $(SQDIR)/unsquashfs .
-	cp $(SQDIR)/mksquashfs .
+	@cp -u $(SQDIR)/unsquashfs .
+	@cp -u $(SQDIR)/mksquashfs .
 
 clean:
 	$(MAKE) -C $(SQDIR) clean

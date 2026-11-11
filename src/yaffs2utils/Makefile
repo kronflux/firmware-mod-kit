@@ -76,4 +76,4 @@ clean:
 distclean: clean
 	rm -rf $(TARGET)
 
-.PHONY: all clean distclean $(TARGET)
+.PHONY: all clean distclean

@@ -1,5 +1,9 @@
-all:
-	gcc bff_huffman_decompress.c -o bff_huffman_decompress
+CC=gcc
+
+all: bff_huffman_decompress
+
+bff_huffman_decompress: bff_huffman_decompress.c
+	$(CC) bff_huffman_decompress.c -o bff_huffman_decompress
 
 clean:
 	rm -f bff_huffman_decompress

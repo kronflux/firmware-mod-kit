@@ -38,4 +38,4 @@ clean:
 	rm -f unsquashfs.exe
 	rm -f mksquashfs-lzma.exe
 	rm -f unsquashfs-lzma.exe
-	make -C $(LZMAPATH) clean
+	$(MAKE) -C $(LZMAPATH) clean

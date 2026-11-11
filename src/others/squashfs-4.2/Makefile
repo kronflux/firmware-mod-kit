@@ -1,8 +1,8 @@
 all:
-	make -C squashfs-tools
+	$(MAKE) -C squashfs-tools
 	cp squashfs-tools/unsquashfs .
 	cp squashfs-tools/mksquashfs .
 
 clean:
-	make -C squashfs-tools clean
+	$(MAKE) -C squashfs-tools clean
 	rm -f unsquashfs mksquashfs

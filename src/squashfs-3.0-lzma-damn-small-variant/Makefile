@@ -29,7 +29,7 @@ unsquashfs-lzma: unsquashfs.o $(LZMAPATH)/liblzma.a
 unsquashfs.o: unsquashfs.c squashfs_fs.h read_fs.h global.h
 
 clean:
-	make -C $(LZMAPATH) clean
+	$(MAKE) -C $(LZMAPATH) clean
 	rm -f *.o 
 	rm -f mksquashfs-lzma
 	rm -f unsquashfs-lzma

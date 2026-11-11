@@ -9,6 +9,7 @@
 
 // C things
 #include <stdio.h>
+#include <stdint.h>
 #include <stdlib.h>
 #include <string.h>
 #include <assert.h>
@@ -229,7 +230,7 @@ void do_file(const u8* base, u32 offset, u32 size,
       // blksize must be a power of 2 for the following to work, but it seems
       // quite likely.
  
-      srcdata=(const u8*)(((u32)(base+offset)+blksize-1) & ~(blksize-1));
+      srcdata=(const u8*)(((uintptr_t)(base+offset)+blksize-1) & ~((uintptr_t)blksize-1));
       printsize(size, srcdata+size-(base+offset));
       printf("%s", name);
    } else {

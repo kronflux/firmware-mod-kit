@@ -81,6 +81,13 @@ while IFS="$(printf '\t')" read -r OFFSET HEX LINE
 	# binwalk 2.x calls it a "filesystem", 3.x a "file system" for some types.
 	elif echo "${LINE}" | grep -q -i -E 'file ?system'
 	 then
+		# JFFS2 and YAFFS images are a sequence of nodes or chunks that each
+		# carry the signature, so binwalk may report them many times over.
+		# Only the first result marks the start of the file system.
+		if [ "${FS_TYPE}" = "${DESCRIPTION}" ] && { [ "${FS_TYPE}" = "jffs2" ] || [ "${FS_TYPE}" = "yaffs" ]; }; then
+			continue
+		fi
+
 		FS_OFFSET=${OFFSET}
 		FS_TYPE=${DESCRIPTION}
 

@@ -21,8 +21,10 @@ endif
 
 all: mksquashfs-lzma unsquashfs-lzma
 
-mksquashfs-lzma: mksquashfs.o read_fs.o sort.o swap.o pseudo.o uncompress.o
-	make -C $(LZMAPATH)
+$(LZMAPATH)/liblzma.a:
+	$(MAKE) -C $(LZMAPATH)
+
+mksquashfs-lzma: mksquashfs.o read_fs.o sort.o swap.o pseudo.o uncompress.o $(LZMAPATH)/liblzma.a
 	$(CC) mksquashfs.o read_fs.o sort.o swap.o pseudo.o uncompress.o -lz -lpthread -lm $(LZMA_LIB) -o $@
 
 mksquashfs.o: mksquashfs.c squashfs_fs.h mksquashfs.h global.h sort.h squashfs_swap.h uncompress.h Makefile
@@ -37,7 +39,7 @@ pseudo.o: pseudo.c pseudo.h Makefile
 
 uncompress.o: uncompress.c uncompress.h
 
-unsquashfs-lzma: unsquashfs.o unsquash-1.o unsquash-2.o unsquash-3.o unsquash-4.o swap.o uncompress.o
+unsquashfs-lzma: unsquashfs.o unsquash-1.o unsquash-2.o unsquash-3.o unsquash-4.o swap.o uncompress.o $(LZMAPATH)/liblzma.a
 	$(CC) unsquashfs.o unsquash-1.o unsquash-2.o unsquash-3.o unsquash-4.o swap.o uncompress.o -lz -lpthread -lm $(LZMA_LIB) -o $@
 
 unsquashfs.o: unsquashfs.h unsquashfs.c squashfs_fs.h squashfs_swap.h squashfs_compat.h global.h uncompress.h Makefile

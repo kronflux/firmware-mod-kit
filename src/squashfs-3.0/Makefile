@@ -6,11 +6,13 @@ LZMAPATH = ../lzma/C/7zip/Compress/LZMA_Lib
 
 all: unsquashfs mksquashfs unsquashfs-lzma mksquashfs-lzma
 
+$(LZMAPATH)/liblzma.a:
+	$(MAKE) -C $(LZMAPATH)
+
 mksquashfs: mksquashfs.o read_fs.o sort.o
 	$(CC) mksquashfs.o read_fs.o sort.o -lz -o $@
 
-mksquashfs-lzma: mksquashfs.o read_fs.o sort.o
-	make -C $(LZMAPATH)
+mksquashfs-lzma: mksquashfs.o read_fs.o sort.o $(LZMAPATH)/liblzma.a
 	$(CXX) -O3 mksquashfs.o read_fs.o sort.o -L$(LZMAPATH) -llzma -o $@
 
 mksquashfs.o: mksquashfs.c squashfs_fs.h mksquashfs.h global.h sort.h
@@ -19,8 +21,7 @@ read_fs.o: read_fs.c squashfs_fs.h read_fs.h global.h
 
 sort.o: sort.c squashfs_fs.h global.h sort.h
 
-unsquashfs-lzma: unsquashfs.o
-	make -C $(LZMAPATH)
+unsquashfs-lzma: unsquashfs.o $(LZMAPATH)/liblzma.a
 	$(CXX) -O3 unsquashfs.o -L$(LZMAPATH) -llzma -o $@
 
 unsquashfs: unsquashfs.o

@@ -18,10 +18,12 @@ $(PROG): $(OBJS)
 lzma-uncramfs.o: lzma-uncramfs.c
 	$(CC) $(CFLAGS) lzma-uncramfs.c
 
-lzma-rg/SRC/7zip/Compress/LZMA_C/decode.o:
-	cd lzma-rg/SRC/7zip/Compress/LZMA_C;make
+# Build the LZMA objects directly. Delegating to the sub-make raced with the
+# implicit rule for LzmaDecode.o when running make in parallel.
+lzma-rg/SRC/7zip/Compress/LZMA_C/%.o: lzma-rg/SRC/7zip/Compress/LZMA_C/%.c
+	$(CC) $(CFLAGS) $< -o $@
 
 clean:
 	-$(RM) $(PROG) $(OBJS)
-	cd lzma-rg/SRC/7zip/Compress/LZMA_C;make clean
+	$(MAKE) -C lzma-rg/SRC/7zip/Compress/LZMA_C clean
 

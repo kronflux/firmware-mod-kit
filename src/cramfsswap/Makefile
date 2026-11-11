@@ -6,7 +6,7 @@ debian: cramfsswap
 cramfsswap: cramfsswap.c
 	gcc -Wall -g -O -o cramfsswap cramfsswap.c -lz
 
-strip:
+strip: cramfsswap
 	strip cramfsswap
 
 install: cramfsswap

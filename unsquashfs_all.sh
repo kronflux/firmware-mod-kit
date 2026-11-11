@@ -38,6 +38,37 @@ others/squashfs-hg55x-bin"
 TIMEOUT="60"
 MKFS=""
 
+# Try to extract the image with the unsquashfs utility $1. If that produces a
+# usable root file system, MKFS is set to $2, the matching mksquashfs utility.
+function try_unsquashfs()
+{
+	echo -ne "\nTrying $1... "
+
+	timeout -k 5 $TIMEOUT "$1" -dest "$DIR" "$IMG" 2>/dev/null
+
+	if [ -d "$DIR" ]
+	then
+		if [ "$(ls "$DIR")" != "" ]
+		then
+			# Most systems will have busybox - make sure it's a non-zero file size
+			if [ -e "$DIR/bin/sh" ]
+			then
+				if [ "$(wc -c "$DIR/bin/sh" | cut -d' ' -f1)" != "0" ]
+				then
+					MKFS="$2"
+				fi
+			else
+				MKFS="$2"
+			fi
+		fi
+
+		if [ "$MKFS" == "" ]
+		then
+			rm -rf "$DIR"
+		fi
+	fi
+}
+
 if [ "$IMG" == "" ] || [ "$IMG" == "-h" ]
 then
 	echo "Usage: $0 <squashfs image> [output directory]"
@@ -89,59 +120,11 @@ do
 	mksquashfs="$ROOT/$SUBDIR/mksquashfs"
 
 	if [ -e $unsquashfs-lzma ]; then
-		echo -ne "\nTrying $unsquashfs-lzma... "
-
-		timeout -k 5 $TIMEOUT $unsquashfs-lzma -dest "$DIR" "$IMG" 2>/dev/null
-		
-		if [ -d "$DIR" ]
-                then
-			if [ "$(ls "$DIR")" != "" ]
-			then
-				# Most systems will have busybox - make sure it's a non-zero file size
-				if [ -e "$DIR/bin/sh" ]
-				then
-					if [ "$(wc -c "$DIR/bin/sh" | cut -d' ' -f1)" != "0" ]
-					then
-						MKFS="$mksquashfs-lzma"
-					fi
-				else
-                        		MKFS="$mksquashfs-lzma"
-				fi
-			fi
-			
-			if [ "$MKFS" == "" ]
-			then
-				rm -rf "$DIR"
-			fi
-                fi
+		try_unsquashfs "$unsquashfs-lzma" "$mksquashfs-lzma"
 	fi
 	if [ "$MKFS" == "" ] && [ -e $unsquashfs ]; then
-		echo -ne "\nTrying $unsquashfs... "
-
-		timeout -k 5 $TIMEOUT $unsquashfs -dest "$DIR" "$IMG" 2>/dev/null
-
-		if [ -d "$DIR" ]
-		then
-			if [ "$(ls "$DIR")" != "" ]
-			then
-				# Most systems will have busybox - make sure it's a non-zero file size
-				if [ -e "$DIR/bin/sh" ]
-				then
-					if [ "$(wc -c "$DIR/bin/sh" | cut -d' ' -f1)" != "0" ]
-					then
-						MKFS="$mksquashfs"
-					fi
-				else
-					MKFS="$mksquashfs"
-				fi
-			fi
-
-			if [ "$MKFS" == "" ]
-			then
-				rm -rf "$DIR"
-			fi
-		fi
-	fi	
+		try_unsquashfs "$unsquashfs" "$mksquashfs"
+	fi
 
 	if [ "$MKFS" != "" ]
 	then

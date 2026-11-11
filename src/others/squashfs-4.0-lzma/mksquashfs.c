@@ -783,7 +783,7 @@ void restorefs()
 }
 
 
-void sighandler()
+void sighandler(int sig)
 {
 	if(++interrupted > 2)
 		return;
@@ -796,13 +796,13 @@ void sighandler()
 }
 
 
-void sighandler2()
+void sighandler2(int sig)
 {
 	EXIT_MKSQUASHFS();
 }
 
 
-void sigusr1_handler()
+void sigusr1_handler(int sig)
 {
 	int i;
 	sigset_t sigmask;
@@ -824,7 +824,7 @@ void sigusr1_handler()
 }
 
 
-void sigwinch_handler()
+void sigwinch_handler(int sig)
 {
 	struct winsize winsize;
 
@@ -838,7 +838,7 @@ void sigwinch_handler()
 }
 
 
-void sigalrm_handler()
+void sigalrm_handler(int sig)
 {
 	rotate = (rotate + 1) % 4;
 }

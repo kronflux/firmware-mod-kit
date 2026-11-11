@@ -26,10 +26,12 @@ extern WindowOut out_window;
 INLINE void OutWindowCopyBackBlock(UINT32 aDistance, UINT32 aLen)
   {
     BYTE   *p = out_window.Buffer + out_window.Pos;
+    const BYTE *src;
     UINT32  i;
     aDistance++;
+    src = p - aDistance;
     for(i = 0; i < aLen; i++)
-      p[i] = p[i - aDistance];
+      p[i] = src[i];
     out_window.Pos += aLen;
   }
 

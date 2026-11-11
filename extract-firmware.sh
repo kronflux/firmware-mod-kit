@@ -56,69 +56,59 @@ mkdir -p "${DIR}/image_parts"
 
 echo "Scanning firmware..."
 
-# Log binwalk results to the ${BINLOG} file, disable default filters, exclude invalid results,
-# and search only for trx, uimage, dlob, squashfs, and cramfs results.
-#${BINWALK} -f "${BINLOG}" -d -x invalid -y trx -y uimage -y dlob -y squashfs -y cramfs "${IMG}"
-${BINWALK} -f "${BINLOG}" "${IMG}"
-
-# Set Internal Field Separator (IFS) via two lines to newline only (bashism would be $'\n')
-IFS='
-'
+# Log the binwalk results to the ${BINLOG} file, one "offset, hex offset, description" line per result.
+if ! Binwalk_Scan "${IMG}" > "${BINLOG}"; then
+	rm -rf "${DIR}"
+	exit 1
+fi
 
 # Header image offset is ALWAYS 0. Header checksums are simply updated by build-ng.sh.
 HEADER_IMAGE_OFFSET=0
 
 # Loop through binwalk log file
-for LINE in IFS='
-'$(sort -n ${BINLOG} | grep -v -e '^DECIMAL' -e '^---')
+while IFS="$(printf '\t')" read -r OFFSET HEX LINE
  do
-	# Get decimal file offset and the first word of the description
-	OFFSET=$(echo ${LINE} | awk '{print $1}')
-	DESCRIPTION=$(echo ${LINE} | awk '{print tolower($3)}')
+	# The first word of the description names the type of the result
+	DESCRIPTION=$(echo "${LINE}" | awk '{print tolower($1)}')
 
 	# Offset 0 is firmware header
 	if [ "${OFFSET}" = "0" ]; then
 		HEADER_OFFSET=${OFFSET}
 		HEADER_TYPE=${DESCRIPTION}
-		HEADER_SIZE=$(echo ${LINE} | sed -e 's/.*header size: //' | cut -d' ' -f1)
-		HEADER_IMAGE_SIZE=$(echo ${LINE} | sed -e 's/.*image size: //' | cut -d' ' -f1)
+		HEADER_SIZE=$(echo "${LINE}" | sed -n -e 's/.*header size: \([0-9]*\).*/\1/p')
 
-	# Check to see if this line is a file system entry
-	elif [ "$(echo ${LINE} | grep -i filesystem)" != "" ]
+	# Check to see if this line is a file system entry.
+	# binwalk 2.x calls it a "filesystem", 3.x a "file system" for some types.
+	elif echo "${LINE}" | grep -q -i -E 'file ?system'
 	 then
 		FS_OFFSET=${OFFSET}
 		FS_TYPE=${DESCRIPTION}
 
 		# Need to know endianess for re-assembly
-		if [ "$(echo ${LINE} | grep -i 'big endian')" != "" ]; then
+		if echo "${LINE}" | grep -q -i 'big endian'; then
 			ENDIANESS="-be"
 		else
 			ENDIANESS="-le"
 		fi
 
-		# Check for compression type of the file system. Default to LZMA
-		if [ "$(echo ${LINE} | grep -i 'gzip')" != "" ];  then
-			FS_COMPRESSION="gzip"
-		else
-			FS_COMPRESSION="lzma"
+		# Check for compression type of the file system. binwalk names it for
+		# squashfs 4.x images ("compression:xz" in 2.x, "compression: xz" in 3.x).
+		# Older images have no such field, so fall back to gzip if the description
+		# mentions it and default to LZMA otherwise.
+		FS_COMPRESSION=$(echo "${LINE}" | sed -n -e 's/.*compression: *\([a-z0-9]*\).*/\1/p')
+		if [ "${FS_COMPRESSION}" = "" ] || [ "${FS_COMPRESSION}" = "unknown" ]; then
+			if echo "${LINE}" | grep -q -i 'gzip'; then
+				FS_COMPRESSION="gzip"
+			else
+				FS_COMPRESSION="lzma"
+			fi
 		fi
 
-		# Check for a block size (used only by squashfs)
-		if [ "$(echo ${LINE} | grep -i 'blocksize')" != "" ]; then
-			set -f
-			IFS=,
-			for fsparam in ${LINE}
-			do
-				if [[ $fsparam = *blocksize* ]]; then
-				  fsparam="${fsparam##*blocksize: }"
-				  FS_BLOCKSIZE="${fsparam%* bytes}"
-				  break
-				fi
-			done
-		fi
-		set +f; unset IFS
+		# Check for a block size (used only by squashfs).
+		# "blocksize: N bytes" in binwalk 2.x, "block size: N" in 3.x.
+		FS_BLOCKSIZE=$(echo "${LINE}" | sed -n -E -e 's/.*block ?size: ([0-9]+).*/\1/p')
 	fi
-done
+done < "${BINLOG}"
 
 # Header image size is everything from the header image offset (0) up to the file system
 HEADER_IMAGE_SIZE=$((${FS_OFFSET}-${HEADER_IMAGE_OFFSET}))

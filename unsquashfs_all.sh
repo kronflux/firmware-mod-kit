@@ -85,7 +85,17 @@ DIR=$(readlink -f "$DIR")
 # Make sure we're operating out of the FMK directory
 cd $(dirname $(readlink -f "$0"))
 
-MAJOR=$(./src/binwalk-1.0/src/bin/binwalk-script -m ./src/binwalk-*/src/binwalk/magic/binwalk -l 1024 "$IMG" | head -4 | tail -1 | sed -e 's/.*version //' | cut -d'.' -f1)
+# Read the major version from the SquashFS super block. It is a 16 bit value at
+# offset 28 in every version of the format, stored in the byte order that the
+# magic signature indicates.
+case "$(head -c 4 "$IMG")" in
+	sqsh|sqlz|qshs|tqsh)
+		MAJOR=$(od -An -tu1 -j28 -N2 "$IMG" | awk '{print $1*256+$2}')
+		;;
+	*)
+		MAJOR=$(od -An -tu1 -j28 -N2 "$IMG" | awk '{print $2*256+$1}')
+		;;
+esac
 
 echo -e "Attempting to extract SquashFS $MAJOR.X file system...\n"
 

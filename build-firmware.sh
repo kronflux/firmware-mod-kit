@@ -93,6 +93,14 @@ case $FS_TYPE in
 		echo "WARNING: YAFFS2 completely untested !! Hit any key to confirm ..."
 		pause
 		;;
+	"jffs2")
+		# mkfs.jffs2 comes from mtd-utils
+		if [ "$ENDIANESS" == "-be" ]; then
+			$SUDO $MKFS -r "$ROOTFS" -o "$FSOUT" --big-endian
+		else
+			$SUDO $MKFS -r "$ROOTFS" -o "$FSOUT" --little-endian
+		fi
+		;;
 	*)
 		echo "Unsupported file system '$FS_TYPE'!"
 		;;

@@ -182,13 +182,20 @@ case ${FS_TYPE} in
 		;;
 	"jffs2")
 		echo "Extracting JFFS2 file system..."
-		${SUDO} ./src/jffs2/unjffs2 "${FSIMG}" 1>&2 2>/dev/null
-		# unjffs2 extracts to hard-coded directory of 'rootfs'
-		if [ -e "rootfs" ]
-		then
-			${SUDO} mv rootfs "${ROOTFS}"
+		JEFFERSON=$(command -v jefferson)
+		if [ "${JEFFERSON}" != "" ]; then
+			# jefferson reads the image directly, in user space
+			${SUDO} "${JEFFERSON}" -d "${ROOTFS}" "${FSIMG}" >/dev/null 2>&1
+		else
+			# unjffs2 mounts the image through the kernel's mtdram and mtdblock
+			# modules, and extracts to a hard-coded directory of 'rootfs'
+			${SUDO} ./src/jffs2/unjffs2 "${FSIMG}" 1>&2 2>/dev/null
+			if [ -e "rootfs" ]
+			then
+				${SUDO} mv rootfs "${ROOTFS}"
+			fi
 		fi
-		echo "MKFS='./src/jffs2/mkjffs2'" >> "${CONFLOG}"
+		echo "MKFS='mkfs.jffs2'" >> "${CONFLOG}"
 		;;
 	*)
 		echo "Unsupported file system '${FS_TYPE}'! Quitting..."

@@ -198,7 +198,7 @@ case ${FS_TYPE} in
 esac
 
 # Check if file system extraction was successful
-if [ ${?} -eq 0 ]; then
+if [ -d "${ROOTFS}" ] && [ "$(ls -A "${ROOTFS}")" != "" ]; then
 	echo "Firmware extraction successful!"
 	echo "Firmware parts can be found in '${DIR}/*'"
 else

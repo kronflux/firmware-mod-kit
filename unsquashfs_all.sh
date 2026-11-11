@@ -32,8 +32,7 @@ others/squashfs-3.4-nb4 \
 others/squashfs-4.2-official \
 others/squashfs-4.2 \
 others/squashfs-4.0-lzma \
-others/squashfs-4.0-realtek \
-others/squashfs-hg55x-bin"
+others/squashfs-4.0-realtek"
 # Seconds each unsquashfs utility gets before it is considered hung
 TIMEOUT="60"
 MKFS=""

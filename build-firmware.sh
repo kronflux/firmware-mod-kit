@@ -165,9 +165,12 @@ CHECKSUM_ERROR=0
 # trx, dlob, uimage
 # Buffalo and some other post-processors obfuscate these images
 # so we must akways try prior to vendor processing below
-./src/crcalc/crcalc "$FWOUT" "$BINLOG"
-if [ $? -ne 0 ]; then		
-	CHECKSUM_ERROR=1
+# A bare file system image has no header to update
+if [ "$HEADER_IMAGE_SIZE" != "0" ]; then
+	./src/crcalc/crcalc "$FWOUT" "$BINLOG"
+	if [ $? -ne 0 ]; then
+		CHECKSUM_ERROR=1
+	fi
 fi
 
 # Vendor specific post-processing

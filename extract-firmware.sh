@@ -71,8 +71,8 @@ while IFS="$(printf '\t')" read -r OFFSET HEX LINE
 	# The first word of the description names the type of the result
 	DESCRIPTION=$(echo "${LINE}" | awk '{print tolower($1)}')
 
-	# Offset 0 is firmware header
-	if [ "${OFFSET}" = "0" ]; then
+	# Offset 0 is firmware header, unless the image is a bare file system
+	if [ "${OFFSET}" = "0" ] && ! echo "${LINE}" | grep -q -i -E 'file ?system'; then
 		HEADER_OFFSET=${OFFSET}
 		HEADER_TYPE=${DESCRIPTION}
 		HEADER_SIZE=$(echo "${LINE}" | sed -n -e 's/.*header size: \([0-9]*\).*/\1/p')
@@ -127,6 +127,15 @@ done < "${BINLOG}"
 
 if [ "${FS_OFFSET}" = "" ]; then
 	echo "ERROR: No supported file system found! Aborting..."
+	if [ -s "${BINLOG}" ]; then
+		echo
+		echo "binwalk found only this in the image:"
+		cut -f 1,3 "${BINLOG}" | cut -c 1-100 | sed -e 's/^/  /'
+		echo
+		echo "A file system inside compressed or encrypted data cannot be reached."
+		echo "Try 'binwalk -Me' to unpack the image, and run this script or"
+		echo "unsquashfs_all.sh on a file system image found inside it."
+	fi
 	rm -rf "${DIR}"
 	exit 1
 fi
@@ -135,8 +144,12 @@ fi
 HEADER_IMAGE_SIZE=$((${FS_OFFSET}-${HEADER_IMAGE_OFFSET}))
 
 # Extract the header + image up to the file system
-echo "Extracting ${HEADER_IMAGE_SIZE} bytes of ${HEADER_TYPE} header image at offset ${HEADER_IMAGE_OFFSET}"
-dd if="${IMG}" bs=${HEADER_IMAGE_SIZE} skip=${HEADER_IMAGE_OFFSET} count=1 of="${HEADER_IMAGE}" 2>/dev/null
+if [ "${HEADER_IMAGE_SIZE}" = "0" ]; then
+	echo "The image starts with the file system; there is no header image"
+else
+	echo "Extracting ${HEADER_IMAGE_SIZE} bytes of ${HEADER_TYPE} header image at offset ${HEADER_IMAGE_OFFSET}"
+fi
+head -c ${HEADER_IMAGE_SIZE} "${IMG}" > "${HEADER_IMAGE}"
 
 # Try to determine if there is a footer at the end of the firmware image.
 # A footer is whatever follows the last run of at least 64 identical padding

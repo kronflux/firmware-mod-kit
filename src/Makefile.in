@@ -11,9 +11,10 @@ all:
 ifeq ($(V),1)
 	$(MAKE) tools
 else
-	@echo "Building the tools, this takes a minute or two (\"make V=1\" shows the compiler output)..."
+	@echo "Building any tools that are missing or out of date (\"make V=1\" shows the compiler output)."
+	@echo "A build from scratch takes a minute or two..."
 	@if $(MAKE) tools > build.log 2>&1; then \
-		echo "Tools built successfully."; \
+		echo "The tools are ready."; \
 	else \
 		grep -E -B2 -A6 '(^|[^a-z])error[: ]|undefined reference|multiple definition|No such file' build.log | head -n 60; \
 		echo; \

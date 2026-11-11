@@ -134,5 +134,33 @@ do
 	fi
 done
 
+# None of the bundled utilities could extract the image, so fall back to what
+# is installed on the system. sasquatch understands many vendor variants, and
+# current squashfs-tools support compressors the bundled ones lack (lzo, lz4, zstd).
+for TOOL in sasquatch unsquashfs
+do
+	TOOLPATH=$(command -v $TOOL)
+	if [ "$TOOLPATH" == "" ]
+	then
+		continue
+	fi
+
+	try_unsquashfs "$TOOLPATH" "mksquashfs"
+
+	if [ "$MKFS" != "" ]
+	then
+		echo "File system sucessfully extracted!"
+
+		# The system mksquashfs only creates SquashFS 4.0 images
+		if [ "$MAJOR" == "4" ] && [ "$(command -v mksquashfs)" != "" ]
+		then
+			echo "MKFS=\"$MKFS\""
+		else
+			echo "MKFS=\"\""
+		fi
+		exit 0
+	fi
+done
+
 echo "File extraction failed!"
 exit 1

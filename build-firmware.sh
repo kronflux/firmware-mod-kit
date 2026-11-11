@@ -52,17 +52,31 @@ rm -rf "$FWOUT" "$FSOUT"
 # Build the appropriate file system
 case $FS_TYPE in
 	"squashfs")
+		if [ "$MKFS" == "" ]; then
+			echo "This file system was extracted with a tool that has no matching mksquashfs. Quitting..."
+			exit 1
+		fi
+
+		# A bare "mksquashfs" is the one installed on the system, which is a 4.x version
+		if [ "$MKFS" == "mksquashfs" ]; then
+			SYSTEM_MKFS=1
+		else
+			SYSTEM_MKFS=0
+		fi
+
 		# The squashfs 4.0 realtek and 4.2 tools support several compressors and default to gzip,
 		# so they must be told which one the original image used. The older tools have theirs built in.
-		if [ "$(echo $MKFS | grep 'squashfs-4.0-realtek')" != "" ] || [ "$(echo $MKFS | grep 'squashfs-4.2')" != "" ]; then
+		if [ "$SYSTEM_MKFS" == "1" ] || [ "$(echo $MKFS | grep 'squashfs-4.0-realtek')" != "" ] || [ "$(echo $MKFS | grep 'squashfs-4.2')" != "" ]; then
 			COMP="-comp $FS_COMPRESSION"
 		else
 			COMP=""
 		fi
 
 		# Mksquashfs 4.0 tools don't support the -le option; little endian is built by default
-		if [ "$(echo $MKFS | grep 'squashfs-4.')" != "" ] && [ "$ENDIANESS" == "-le" ];	then
-			ENDIANESS=""
+		if [ "$SYSTEM_MKFS" == "1" ] || [ "$(echo $MKFS | grep 'squashfs-4.')" != "" ]; then
+			if [ "$ENDIANESS" == "-le" ]; then
+				ENDIANESS=""
+			fi
 		fi
 		
 		# Increasing the block size minimizes the resulting image size (larger dictionary). Max block size of 1MB.

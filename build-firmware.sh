@@ -1,5 +1,5 @@
 #!/bin/bash
-BINDIR=`dirname $0`
+BINDIR=$(dirname "$0")
 . "$BINDIR/common.inc"
 
 DIR="$1"
@@ -24,14 +24,14 @@ else
         SUDO=""
 fi
 
-DIR=$(readlink -f $DIR)
+DIR=$(readlink -f "$DIR")
 
 # Make sure we're operating out of the FMK directory
-cd $(dirname $(readlink -f $0))
+cd "$(dirname "$(readlink -f "$0")")"
 
 # Order matters here!
-eval $(cat shared-ng.inc)
-eval $(cat $CONFLOG)
+. ./shared-ng.inc
+. "$CONFLOG"
 FSOUT="$DIR/new-filesystem.$FS_TYPE"
 
 printf "Firmware Mod Kit (build) ${VERSION}, (c)2011-2013 Craig Heffner, Jeremy Collake\n\n"
@@ -106,17 +106,17 @@ case $FS_TYPE in
 		;;
 esac
 
-if [ ! -e $FSOUT ]; then
+if [ ! -e "$FSOUT" ]; then
 	echo "Failed to create new file system! Quitting..."
 	exit 1
 fi
 
 # Append the new file system to the first part of the original firmware file
-cp $HEADER_IMAGE $FWOUT
-$SUDO cat $FSOUT >> $FWOUT
+cp "$HEADER_IMAGE" "$FWOUT"
+$SUDO cat "$FSOUT" >> "$FWOUT"
 
 # Calculate and create any filler bytes required between the end of the file system and the footer / EOF.
-CUR_SIZE=$(ls -l $FWOUT | awk '{print $5}')
+CUR_SIZE=$(wc -c < "$FWOUT")
 ((FILLER_SIZE=$FW_SIZE-$CUR_SIZE-$FOOTER_SIZE))
 
 if [ "$FILLER_SIZE" -lt 0 ]; then
@@ -142,7 +142,7 @@ fi
 
 # Append the footer to the new firmware image, if there is any footer
 if [ "$FOOTER_SIZE" -gt "0" ]; then
-	cat $FOOTER_IMAGE >> "$FWOUT"
+	cat "$FOOTER_IMAGE" >> "$FWOUT"
 fi
 
 CHECKSUM_ERROR=0

@@ -1,5 +1,5 @@
 #!/bin/bash
-BINDIR=`dirname $0`
+BINDIR=$(dirname "$0")
 . "$BINDIR/common.inc"
 
 IMG="${1}"
@@ -18,11 +18,11 @@ else
 	SUDO=""
 fi
 
-IMG=$(readlink -f $IMG)
-DIR=$(readlink -f $DIR)
+IMG=$(readlink -f "$IMG")
+DIR=$(readlink -f "$DIR")
 
 # Make sure we're operating out of the FMK directory
-cd $(dirname $(readlink -f $0))
+cd "$(dirname "$(readlink -f "$0")")"
 
 # Source in/Import shared settings. ${DIR} MUST be defined prior to this!
 . ./shared-ng.inc
@@ -48,7 +48,7 @@ fi
 Build_Tools
 
 # Get the size, in bytes, of the target firmware image
-FW_SIZE=$(ls -l "${IMG}" | cut -d' ' -f5)
+FW_SIZE=$(wc -c < "${IMG}")
 
 # Create output directories
 mkdir -p "${DIR}/logs"
@@ -180,18 +180,18 @@ echo "Extracting ${FS_TYPE} file system at offset ${FS_OFFSET}"
 tail -c +$((${FS_OFFSET}+1)) "${IMG}" | head -c $((${FOOTER_OFFSET}-${FS_OFFSET})) > "${FSIMG}"
 
 # Log the parsed values to the CONFLOG for use when re-building the firmware
-echo "FW_SIZE='${FW_SIZE}'" > ${CONFLOG}
-echo "HEADER_TYPE='${HEADER_TYPE}'" >> ${CONFLOG}
-echo "HEADER_SIZE='${HEADER_SIZE}'" >> ${CONFLOG}
-echo "HEADER_IMAGE_SIZE='${HEADER_IMAGE_SIZE}'" >> ${CONFLOG}
-echo "HEADER_IMAGE_OFFSET='${HEADER_IMAGE_OFFSET}'" >> ${CONFLOG}
-echo "FOOTER_SIZE='${FOOTER_SIZE}'" >> ${CONFLOG}
-echo "FOOTER_OFFSET='${FOOTER_OFFSET}'" >> ${CONFLOG}
-echo "FS_TYPE='${FS_TYPE}'" >> ${CONFLOG}
-echo "FS_OFFSET='${FS_OFFSET}'" >> ${CONFLOG}
-echo "FS_COMPRESSION='${FS_COMPRESSION}'" >> ${CONFLOG}
-echo "FS_BLOCKSIZE='${FS_BLOCKSIZE}'" >> ${CONFLOG}
-echo "ENDIANESS='${ENDIANESS}'" >> ${CONFLOG}
+echo "FW_SIZE='${FW_SIZE}'" > "${CONFLOG}"
+echo "HEADER_TYPE='${HEADER_TYPE}'" >> "${CONFLOG}"
+echo "HEADER_SIZE='${HEADER_SIZE}'" >> "${CONFLOG}"
+echo "HEADER_IMAGE_SIZE='${HEADER_IMAGE_SIZE}'" >> "${CONFLOG}"
+echo "HEADER_IMAGE_OFFSET='${HEADER_IMAGE_OFFSET}'" >> "${CONFLOG}"
+echo "FOOTER_SIZE='${FOOTER_SIZE}'" >> "${CONFLOG}"
+echo "FOOTER_OFFSET='${FOOTER_OFFSET}'" >> "${CONFLOG}"
+echo "FS_TYPE='${FS_TYPE}'" >> "${CONFLOG}"
+echo "FS_OFFSET='${FS_OFFSET}'" >> "${CONFLOG}"
+echo "FS_COMPRESSION='${FS_COMPRESSION}'" >> "${CONFLOG}"
+echo "FS_BLOCKSIZE='${FS_BLOCKSIZE}'" >> "${CONFLOG}"
+echo "ENDIANESS='${ENDIANESS}'" >> "${CONFLOG}"
 
 # Extract the file system and save the MKFS variable to the CONFLOG
 case ${FS_TYPE} in

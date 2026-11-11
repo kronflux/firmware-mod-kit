@@ -3,7 +3,7 @@
 #
 # Craig Heffner
 # 27 August 2011
-BINDIR=`dirname $0`
+BINDIR=$(dirname "$0")
 . "$BINDIR/common.inc"
 IMG="$1"
 DIR="$2"
@@ -61,7 +61,7 @@ IMG=$(readlink -f "$IMG")
 DIR=$(readlink -f "$DIR")
 
 # Make sure we're operating out of the FMK directory
-cd $(dirname $(readlink -f "$0"))
+cd "$(dirname "$(readlink -f "$0")")"
 
 # Read the major version from the SquashFS super block. It is a 16 bit value at
 # offset 28 in every version of the format, stored in the byte order that the

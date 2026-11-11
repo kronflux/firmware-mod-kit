@@ -19,7 +19,7 @@ fi
 
 if [ "$ENDIANESS" == "" ]
 then
-	if [ "$(file $FSIMG | grep 'big endian')" != "" ]
+	if [ "$(file "$FSIMG" | grep 'big endian')" != "" ]
 	then
 		ENDIANESS="-be"
 	fi
@@ -31,18 +31,18 @@ then
 	BDIR=$ROOTFS
 	I=1
 
-	while [ -e $ROOTFS ]
+	while [ -e "$ROOTFS" ]
 	do
 		ROOTFS=$BDIR-$I
 		((I=$I+1))
 	done
 fi
 
-FSIMG=$(readlink -f $FSIMG)
-ROOTFS=$(readlink -f $ROOTFS)
+FSIMG=$(readlink -f "$FSIMG")
+ROOTFS=$(readlink -f "$ROOTFS")
 
 # Make sure we're operating out of the FMK directory
-cd $(dirname $(readlink -f $0))
+cd "$(dirname "$(readlink -f "$0")")"
 
 if [ "$ENDIANESS" == "-be" ]
 then
@@ -61,7 +61,7 @@ then
 		bad=0
 
 		# Check at least the first five files to make sure they didn't just extract to all zero's
-		for FILE in $(find "$ROOTFS")
+		while IFS= read -r FILE
 		do
 			if [ -f "$FILE" ]
 			then
@@ -81,7 +81,7 @@ then
 			then
 				break
 			fi
-		done
+		done < <(find "$ROOTFS")
 
 		if [ "$bad" != "$nfiles" ]
 		then

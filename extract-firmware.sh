@@ -107,8 +107,22 @@ while IFS="$(printf '\t')" read -r OFFSET HEX LINE
 		# Check for a block size (used only by squashfs).
 		# "blocksize: N bytes" in binwalk 2.x, "block size: N" in 3.x.
 		FS_BLOCKSIZE=$(echo "${LINE}" | sed -n -E -e 's/.*block ?size: ([0-9]+).*/\1/p')
+
+		# Check for the size of the file system, which tells where it ends.
+		# binwalk 3.x reports an "image size" or "total size". 2.x reports
+		# a "size" for squashfs, which must not be confused with "blocksize".
+		FS_SIZE=$(echo "${LINE}" | sed -n -E -e 's/.*(image|total) size: ([0-9]+) bytes.*/\2/p')
+		if [ "${FS_SIZE}" = "" ]; then
+			FS_SIZE=$(echo "${LINE}" | sed -n -E -e 's/.*, size: ([0-9]+) bytes.*/\1/p')
+		fi
 	fi
 done < "${BINLOG}"
+
+if [ "${FS_OFFSET}" = "" ]; then
+	echo "ERROR: No supported file system found! Aborting..."
+	rm -rf "${DIR}"
+	exit 1
+fi
 
 # Header image size is everything from the header image offset (0) up to the file system
 HEADER_IMAGE_SIZE=$((${FS_OFFSET}-${HEADER_IMAGE_OFFSET}))
@@ -117,39 +131,53 @@ HEADER_IMAGE_SIZE=$((${FS_OFFSET}-${HEADER_IMAGE_OFFSET}))
 echo "Extracting ${HEADER_IMAGE_SIZE} bytes of ${HEADER_TYPE} header image at offset ${HEADER_IMAGE_OFFSET}"
 dd if="${IMG}" bs=${HEADER_IMAGE_SIZE} skip=${HEADER_IMAGE_OFFSET} count=1 of="${HEADER_IMAGE}" 2>/dev/null
 
-if [ "${FS_OFFSET}" != "" ]; then
-	echo "Extracting ${FS_TYPE} file system at offset ${FS_OFFSET}"
-	dd if="${IMG}" bs=${FS_OFFSET} skip=1 of="${FSIMG}" 2>/dev/null
-else
-	echo "ERROR: No supported file system found! Aborting..."
-	rm -rf "${DIR}"
-	exit 1
+# Try to determine if there is a footer at the end of the firmware image.
+# A footer is whatever follows the last run of at least 64 identical padding
+# bytes (0x00 or 0xFF) after the end of the file system. If binwalk did not
+# report the size of the file system there is no telling such padding from
+# what the file system itself contains, so no footer is looked for.
+FOOTER_OFFSET=${FW_SIZE}
+
+if [ "${FS_SIZE}" != "" ]; then
+	FS_END=$((${FS_OFFSET}+${FS_SIZE}))
+	if [ "${FS_END}" -gt "${FW_SIZE}" ]; then
+		FS_END=${FW_SIZE}
+	fi
+
+	PADDING_END=$(tail -c +$((${FS_END}+1)) "${IMG}" | od -An -v -tx1 -w16 | awk '
+		{
+			for (i = 1; i <= NF; i++) {
+				if ($i == last && ($i == "00" || $i == "ff")) {
+					run++
+				} else {
+					if (run >= 64) padding_end = n
+					run = ($i == "00" || $i == "ff") ? 1 : 0
+					last = $i
+				}
+				n++
+			}
+		}
+		END {
+			if (run >= 64) padding_end = n
+			if (padding_end != "") print padding_end
+		}')
+
+	if [ "${PADDING_END}" != "" ]; then
+		FOOTER_OFFSET=$((${FS_END}+${PADDING_END}))
+	fi
 fi
 
-FOOTER_SIZE=0
-FOOTER_OFFSET=0
-
-# Try to determine if there is a footer at the end of the firmware image.
-# Grab the last 10 lines of a hexdump of the firmware image, excluding the
-# last line in the hexdump. Reverse the line order and replace any lines
-# that start with '*' with the word 'FILLER'.
-for LINE in $(hexdump -C ${IMG} | tail -11 | head -10 | sed -n '1!G;h;$p' | sed -e 's/^*/FILLER/')
- do
-	if [ "${LINE}" = "FILLER" ]; then
-		break
-	else
-		FOOTER_SIZE=$((${FOOTER_SIZE}+16))
-	fi
-done
+FOOTER_SIZE=$((${FW_SIZE}-${FOOTER_OFFSET}))
 
 # If a footer was found, dump it out
 if [ "${FOOTER_SIZE}" != "0" ]; then
-	FOOTER_OFFSET=$((${FW_SIZE}-${FOOTER_SIZE}))
 	echo "Extracting ${FOOTER_SIZE} byte footer from offset ${FOOTER_OFFSET}"
-	dd if="${IMG}" bs=1 skip=${FOOTER_OFFSET} count=${FOOTER_SIZE} of="${FOOTER_IMAGE}" 2>/dev/null
-else
-	FOOTER_OFFSET=${FW_SIZE}
+	tail -c ${FOOTER_SIZE} "${IMG}" > "${FOOTER_IMAGE}"
 fi
+
+# The file system is everything between its offset and the footer
+echo "Extracting ${FS_TYPE} file system at offset ${FS_OFFSET}"
+tail -c +$((${FS_OFFSET}+1)) "${IMG}" | head -c $((${FOOTER_OFFSET}-${FS_OFFSET})) > "${FSIMG}"
 
 # Log the parsed values to the CONFLOG for use when re-building the firmware
 echo "FW_SIZE='${FW_SIZE}'" > ${CONFLOG}

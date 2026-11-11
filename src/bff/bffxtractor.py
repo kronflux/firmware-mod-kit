@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 # A hacky extraction utility for extracting the contents of BFF volume entries.
 # It can't parse a BFF file itself, but expects the BFF volume entry to already 
 # be extracted to a file; it then extracts the original file from the volume entry 
@@ -25,7 +25,7 @@ def _mkdir(newdir):
         head, tail = os.path.split(newdir)
         if head and not os.path.isdir(head):
             _mkdir(head)
-        #print "_mkdir %s" % repr(newdir)
+        #print("_mkdir %s" % repr(newdir))
         if tail:
             os.mkdir(newdir)
 ## end of http://code.activestate.com/recipes/82465/ }}}
@@ -40,7 +40,7 @@ script_path = os.path.dirname(os.path.realpath(__file__))
 try:
 	fd = open(sys.argv[1], 'rb')
 except:
-	print "Usage: %s <BFF volume entry file>" % sys.argv[0]
+	print("Usage: %s <BFF volume entry file>" % sys.argv[0])
 	sys.exit(1)
 
 header = fd.read(HEADER_SIZE)
@@ -49,25 +49,26 @@ magic = struct.unpack("<H", header[2:4])[0]
 file_size = struct.unpack("<L", header[56:60])[0]
 
 if magic not in MAGICS:
-	print "Unrecognized magic bytes! Quitting."
+	print("Unrecognized magic bytes! Quitting.")
 	sys.exit(1)
 
-filename = ''
+filename = b''
 while True:
 	byte = fd.read(1)
-	if not byte or byte == '\x00':
+	if not byte or byte == b'\x00':
 		break
 	else:
 		filename += byte
 
 filename_len = len(filename)
+filename = filename.decode('utf-8', 'surrogateescape')
 offset = HEADER_SIZE + POST_HEADER_SIZE + filename_len + (8 - (filename_len % 8))
 
 if '..' in filename:
-	print "Dangerous file path '%s'! Quitting." % filename
+	print("Dangerous file path '%s'! Quitting." % filename)
 	sys.exit(1)
 
-print "Extracting '%s'" % filename
+print("Extracting '%s'" % filename)
 _mkdir('./' + os.path.dirname(filename))
 if file_size:
 	fd.seek(offset)
@@ -75,7 +76,7 @@ if file_size:
 	fd.close()
 
 	if len(file_data) != file_size:
-		print "Warning: EOF encountered before the expected file size was reached!"
+		print("Warning: EOF encountered before the expected file size was reached!")
 
 	if magic == HUFFMAN_MAGIC:
 		fpout = open(filename + '.packed', 'wb')

@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 # Utility for extracting WDK "filesystems", such as those found in the DIR-100.
 
 import os
@@ -26,20 +26,20 @@ def unpack(data, offset, size):
 
 # Get the next file entry in the WDK header table
 def get_entry(data):
-	file_name = ""
+	file_name = b""
 	file_size = unpack(data, 2, 2)
 	
 	i = 4
-	while data[i] != "\x00":
-		file_name += data[i]
+	while data[i:i+1] != b"\x00":
+		file_name += data[i:i+1]
 		i += 1
 
-	return (file_size, file_name)
+	return (file_size, file_name.decode('latin-1'))
 
 def extract(fs_image_file):	
 	fs_img = open(fs_image_file, 'rb').read()
 	if len(fs_img) < 32:
-		print "WDK image too small!"
+		print("WDK image too small!")
 		sys.exit(1)
 	
 	entries = {}
@@ -50,8 +50,8 @@ def extract(fs_image_file):
 	# The offset of the version string appears to be fixed as well
 	fs_version = fs_img[18:25]
 	
-	if fs_version != 'WDK 2.0':
-		print "Unknown WDK image:", fs_version
+	if fs_version != b'WDK 2.0':
+		print("Unknown WDK image: %r" % fs_version)
 		sys.exit(1)
 	else:
 		os.mkdir("wdk-root")
@@ -86,7 +86,7 @@ def extract(fs_image_file):
 		if os.path.exists(out_file_name):
 			shutil.move(out_file_name, out_file_name[:-3])
 	
-		print file_name
+		print(file_name)
 
 def main():
 	# First command line argument: WDK image file
@@ -94,7 +94,7 @@ def main():
 	try:
 		fs_image_file = sys.argv[1]
 	except:
-		print "Usage: %s <WDK image file> [big | little]" % sys.argv[0]
+		print("Usage: %s <WDK image file> [big | little]" % sys.argv[0])
 		sys.exit(1)
 	try:
 		ENDIANESS = sys.argv[2]
